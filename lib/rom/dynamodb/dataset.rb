@@ -25,7 +25,7 @@ module ROM
       # @attr_reader [Hash] config the configuration to apply to the underlying
       #   DynamoDB client.
 
-      attr_reader :name, :operation, :config
+      attr_reader :name, :operation, :config, :connection
 
       # @attr [Array<Hash>] queries the array of query sets to merge and use
       #   to query DynamoDB.
@@ -37,10 +37,11 @@ module ROM
 
       attr_accessor :queries
 
-      def initialize(name:, operation: :query, config: {}, queries: [])
+      def initialize(name:, operation: :query, config: {}, queries: [], connection: nil)
         @name = name
         @operation = operation
         @config = config
+        @connection = connection || Aws::DynamoDB::Client.new(config)
         @queries = queries
       end
 
@@ -163,7 +164,7 @@ module ROM
           {
             expression_attribute_values: clauses.expression_attribute_values,
             expression_attribute_names: clauses.expression_attribute_names,
-            key_condition_expression: clauses.key_condition_expression,
+            key_condition_expression: clauses.key_condition_expression
           }
         end
       end
@@ -291,9 +292,14 @@ module ROM
         each_item(build, &block)
       end
 
-      def connection
-        @connection ||= Aws::DynamoDB::Client.new(config)
+      def map(&block)
+        each_item(build, &block).map { |i| i.transform_keys(&:to_sym) }
       end
+
+      # def connection
+      #   byebug
+      #   @connection ||= Aws::DynamoDB::Client.new(config)
+      # end
 
       def execute(query)
         @response ||= case operation
@@ -332,10 +338,41 @@ module ROM
 
         end
         if result
-          args = { name: name, config: config, operation: operation }
-          self.class.new(args.merge(queries: queries + [result].flatten))
+          args = {name: name, config: config, operation: operation, connection: connection}
+          self.class.new(args.merge(queries: add_query(result)))
         else
           self
+        end
+      end
+
+      def add_query(hash)
+        return [hash].flatten if queries.empty?
+        return queries + [hash].flatten unless hash.keys.include?(:key_condition_expression)
+
+        existing_expression_attributes = queries
+          .index { |qry| qry.keys.include?(:key_condition_expression) }
+          .then do |index|
+            next {} if index.nil?
+
+            queries.delete_at(index)
+          end
+
+        if existing_expression_attributes.any?
+          queries + [merge_expression_attributes(existing_expression_attributes, hash)]
+        else
+          queries + [hash].flatten
+        end
+      end
+
+      def merge_expression_attributes(old_exp, new_exp)
+        old_exp.merge(new_exp) do |key, old, new|
+          case key
+          when :expression_attribute_names,
+               :expression_attribute_values
+            old.merge(new)
+          when :key_condition_expression
+            "#{old} AND #{new}"
+          end
         end
       end
 

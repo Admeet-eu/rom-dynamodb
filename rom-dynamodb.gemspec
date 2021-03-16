@@ -19,17 +19,18 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_runtime_dependency "rom", "~> 3.0.0.beta1"
-  spec.add_runtime_dependency "aws-sdk-core", ">= 2.1"
-  spec.add_runtime_dependency "deep_merge", ">= 1.1.1"
+  spec.add_runtime_dependency "rom", "~> 5.x"
+  spec.add_runtime_dependency "aws-sdk-dynamodb", "~> 1.60"
+  spec.add_runtime_dependency "deep_merge", "~> 1.2"
 
-  spec.add_development_dependency "json", "~> 2.0"
-  spec.add_development_dependency "faker", "~> 1.7"
-  spec.add_development_dependency "bigdecimal", "~> 1.3"
-  spec.add_development_dependency "rake", "~> 10.0"
-  spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "json", "~> 2.5"
+  spec.add_development_dependency "faker" , "~> 2.16"
+  spec.add_development_dependency "bigdecimal", "~> 3.0"
+  spec.add_development_dependency "rake" , "~> 13.0"
+  spec.add_development_dependency "rspec", "~> 3.10"
   spec.add_development_dependency "yard", "~> 0.9"
-  spec.add_development_dependency "redcarpet", "~> 3.4"
+  spec.add_development_dependency "redcarpet", "~> 3.5"
   spec.add_development_dependency "codeclimate-test-reporter", "~> 1.0"
-  spec.add_development_dependency "factory_girl", "~> 4.5"
+  spec.add_development_dependency "factory_girl", "~> 4.9"
+  spec.add_development_dependency "byebug"
 end

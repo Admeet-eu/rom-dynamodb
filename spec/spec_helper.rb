@@ -8,6 +8,7 @@ require "transproc/all"
 require "factory_girl"
 require "faker"
 require "rom/dynamodb"
+require "byebug"
 
 
 Dir[Pathname(__FILE__).dirname.join('shared/*.rb').to_s].each { |f| require f }

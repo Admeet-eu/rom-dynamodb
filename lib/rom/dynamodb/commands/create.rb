@@ -11,7 +11,9 @@ module ROM
 
         def with_tuple(tuple)
           data = tuple.is_a?(Hash) ? tuple : tuple.to_h
-          source.create(data)
+          pks = data.select { |k, _v| relation.schema.primary_key.map(&:name).include?(k) }
+          relation.create(data)
+          relation.where { pks.map { |k, v| send(k) == v } }.one
         end
       end
     end

@@ -9,3 +9,4 @@
 /spec/reports/
 /tmp/
 /rom-dynamodb*.gem
+.env
